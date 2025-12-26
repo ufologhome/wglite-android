@@ -2,43 +2,64 @@ name: Build WG-Lite APK
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install dependencies
+    - name: Install system deps
       run: |
-        pip install python-for-android==2022.9.4 Cython==0.29.37
+        sudo apt update
+        sudo apt install -y openjdk-11-jdk unzip wget
 
-    - name: Download SDK & NDK
+    - name: Install Android SDK
       run: |
         mkdir -p $HOME/android-sdk/cmdline-tools
-        mkdir -p $HOME/android-ndk
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
-        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-        wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
-        unzip -q android-ndk-r21e-linux-x86_64.zip -d $HOME/android-ndk
-        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-29" "build-tools;29.0.3"
+        cd $HOME/android-sdk
+
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip commandlinetools-linux-9477386_latest.zip
+
+        mv cmdline-tools cmdline-tools/latest
+
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Install Android platforms
+      run: |
+        yes | sdkmanager --licenses
+        sdkmanager "platforms;android-29" "build-tools;29.0.3"
+
+    - name: Install python-for-android
+      run: |
+        pip install cython==0.29.37 python-for-android==2023.5.21
 
     - name: Build APK
       run: |
-        chmod +x p4a_build.sh
-        ./p4a_build.sh
+        python -m pythonforandroid.toolchain apk \
+          --name WG-Lite \
+          --package org.example.wglite \
+          --version 0.1 \
+          --bootstrap service_only \
+          --requirements python3,pyjnius \
+          --arch armeabi-v7a \
+          --sdk 29 \
+          --minsdk 25 \
+          --private app \
+          --permission INTERNET \
+          --debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: WG-Lite-debug.apk
-        path: /root/.local/share/python-for-android/dists/wglite/build/outputs/apk/debug/wglite-debug.apk
+        name: WG-Lite-APK
+        path: ~/.local/share/python-for-android/dists/**/build/outputs/apk/debug/*.apk
