@@ -3,23 +3,28 @@ set -e
 
 export ANDROIDSDK=$HOME/android-sdk
 export ANDROIDNDK=$HOME/android-ndk/android-ndk-r21e
-export PATH=$ANDROIDSDK/cmdline-tools/latest/bin:$PATH
+export PATH=$ANDROIDSDK/cmdline-tools/latest/bin:$PATH:$ANDROIDSDK/platform-tools
+
+export ANDROIDAPI=29
+export ANDROIDMINAPI=25
 
 APP_DIR=$(pwd)/app
 
+rm -rf .buildozer
+rm -rf ~/.local/share/python-for-android
+
 python3 -m pythonforandroid.toolchain create \
-  --dist_name=wglite \
-  --bootstrap=service_only \
-  --requirements=python3,pyjnius \
+  --dist_name wglite \
+  --bootstrap service_only \
+  --requirements python3,pyjnius \
   --arch=armeabi-v7a \
-  --copy-libs \
-  --color=always \
-  --ndk-api=25 \
+  --ndk-api 25 \
+  --android-api 29 \
   --ignore-setup-py \
   --debug
 
 python3 -m pythonforandroid.toolchain apk \
-  --name WG-Lite \
+  --name "WG-Lite" \
   --package org.example.wglite \
   --version 0.1 \
   --private $APP_DIR \
