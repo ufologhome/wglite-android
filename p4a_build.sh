@@ -57,13 +57,15 @@ python -m pythonforandroid.toolchain apk \
   --name WG-Lite \
   --package org.example.wglite \
   --version 0.1 \
-  --private app \
+  --private $APP_DIR \
   --bootstrap service_only \
   --requirements python3,pyjnius \
-  --arch armeabi-v7a \
-  --android-api 29 \
-  --minsdk 21 \
-  --ndk-api 21 \
+  --arch $ARCH \
+  --android-api $ANDROID_API \
+  --minsdk $ANDROID_MINAPI \
+  --ndk-api $NDK_API \
+  --allow-minsdk-ndkapi-mismatch \
   --permission INTERNET \
   --debug
 
+echo "=== BUILD FINISHED ==="
