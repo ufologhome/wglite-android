@@ -19,15 +19,16 @@ python3 -m pythonforandroid.toolchain create \
   --ignore-setup-py \
   --debug
 
-python3 -m pythonforandroid.toolchain apk \
+python -m pythonforandroid.toolchain apk \
   --name WG-Lite \
   --package org.example.wglite \
   --version 0.1 \
-  --private $APP_DIR \
+  --private app \
   --bootstrap service_only \
+  --requirements python3,pyjnius \
   --arch armeabi-v7a \
-  --sdk 29 \
+  --android-api 29 \
   --minsdk 25 \
-  --manifest $APP_DIR/android_manifest.tmpl.xml \
+  --ndk-api 25 \
   --permission INTERNET \
   --debug
