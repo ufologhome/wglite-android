@@ -38,7 +38,7 @@ jobs:
         ./p4a_build.sh
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: WG-Lite-debug.apk
         path: /root/.local/share/python-for-android/dists/wglite/build/outputs/apk/debug/wglite-debug.apk
