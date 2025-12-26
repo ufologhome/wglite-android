@@ -1,0 +1,19 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python' version '15.1.0'
+}
+
+android {
+    compileSdk 33
+    defaultConfig {
+        applicationId "org.example.wglite"
+        minSdk 25
+        targetSdk 33
+        versionCode 1
+        versionName "0.1"
+    }
+}
+
+python {
+    buildPython "C:/Python39/python.exe" // Необязательно на GitHub
+}
