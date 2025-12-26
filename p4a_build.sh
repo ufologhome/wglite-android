@@ -4,11 +4,11 @@ set -e
 echo "=== WG-Lite p4a build ==="
 
 ############################
-# 1️⃣ ВЕРСИИ (НЕ ТРОГАТЬ)
+# 1️⃣ ВЕРСИИ
 ############################
-ANDROID_API=29          # targetSdk
-ANDROID_MINAPI=25       # Android 7.1.12
-NDK_API=25              # КРИТИЧНО
+ANDROID_API=29
+ANDROID_MINAPI=21
+NDK_API=21
 ARCH=armeabi-v7a
 
 ############################
@@ -24,16 +24,14 @@ export PATH=$ANDROID_NDK_HOME:$PATH
 APP_DIR=$(pwd)/app
 
 ############################
-# 3️⃣ ОЧИСТКА СТАРЫХ СБОРOК
+# 3️⃣ ЖЁСТКАЯ ОЧИСТКА DIST
 ############################
-echo "[*] Cleaning old p4a dists"
-rm -rf ~/.local/share/python-for-android/dists
+echo "[*] Removing old python-for-android dists"
+rm -rf ~/.local/share/python-for-android
 
 ############################
-# 4️⃣ ANDROID SDK
+# 4️⃣ SDK
 ############################
-echo "[*] Installing Android SDK"
-
 rm -rf $ANDROID_SDK_ROOT
 mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 cd $ANDROID_SDK_ROOT
@@ -50,22 +48,11 @@ yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
   "build-tools;29.0.3" \
   "ndk;25.2.9519653"
 
-############################
-# 5️⃣ ПРОВЕРКА
-############################
-echo "[*] SDK:"
-sdkmanager --list | grep "android-${ANDROID_API}"
-
-echo "[*] NDK:"
-ls $ANDROID_NDK_HOME
-
-############################
-# 6️⃣ СБОРКА APK
-############################
 cd -
 
-echo "[*] Building APK"
-
+############################
+# 5️⃣ BUILD
+############################
 python -m pythonforandroid.toolchain apk \
   --name WG-Lite \
   --package org.example.wglite \
@@ -79,9 +66,3 @@ python -m pythonforandroid.toolchain apk \
   --ndk-api $NDK_API \
   --permission INTERNET \
   --debug
-
-############################
-# 7️⃣ ГОТОВО
-############################
-echo "=== BUILD FINISHED ==="
-find ~/.local/share/python-for-android/dists -name "*.apk"
