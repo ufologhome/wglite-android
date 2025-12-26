@@ -1,0 +1,44 @@
+name: Build WG-Lite APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: |
+        pip install python-for-android==2022.9.4 Cython==0.29.37
+
+    - name: Download SDK & NDK
+      run: |
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        mkdir -p $HOME/android-ndk
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+        wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
+        unzip -q android-ndk-r21e-linux-x86_64.zip -d $HOME/android-ndk
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-29" "build-tools;29.0.3"
+
+    - name: Build APK
+      run: |
+        chmod +x p4a_build.sh
+        ./p4a_build.sh
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: WG-Lite-debug.apk
+        path: /root/.local/share/python-for-android/dists/wglite/build/outputs/apk/debug/wglite-debug.apk
