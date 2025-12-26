@@ -1,64 +1,66 @@
-name: Build WG-Lite APK for Android 8.0
+#!/bin/bash
+set -e
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+echo "=== WG-Lite p4a build for Android 8.0 ==="
 
-jobs:
-  build-apk:
-    runs-on: ubuntu-latest
+############################
+# 1️⃣ ВЕРСИИ
+############################
+ANDROID_API=26
+ANDROID_MINAPI=26
+NDK_API=25
+ARCH=armeabi-v7a
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+############################
+# 2️⃣ ПУТИ
+############################
+export ANDROID_SDK_ROOT=$HOME/android-sdk
+export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653
+export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+export PATH=$ANDROID_NDK_HOME:$PATH
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+APP_DIR=$(pwd)/app
 
-      - name: Install python-for-android
-        run: |
-          python -m pip install --upgrade pip
-          pip install python-for-android==2023.5.21 Cython==0.29.37
+############################
+# 3️⃣ УДАЛЯЕМ СТАРЫЕ DIST
+############################
+echo "[*] Removing old python-for-android dists"
+rm -rf ~/.local/share/python-for-android
 
-      - name: Prepare Android SDK & NDK
-        run: |
-          ANDROID_SDK_ROOT=$HOME/android-sdk
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-          cd $ANDROID_SDK_ROOT
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q commandlinetools-linux-9477386_latest.zip
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/ || true
-          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
-            "platform-tools" \
-            "platforms;android-26" \
-            "build-tools;26.0.3" \
-            "ndk;25.2.9519653"
-          cd -
+############################
+# 4️⃣ SDK
+############################
+rm -rf $ANDROID_SDK_ROOT
+mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+cd $ANDROID_SDK_ROOT
 
-      - name: Build APK
-        run: |
-          python -m pythonforandroid.toolchain apk \
-            --name WG-Lite \
-            --package org.example.wglite \
-            --version 0.1 \
-            --private app \
-            --bootstrap service_only \
-            --requirements python3,pyjnius \
-            --arch armeabi-v7a \
-            --android-api 26 \
-            --minsdk 26 \
-            --ndk-api 25 \
-            --allow-minsdk-ndkapi-mismatch \
-            --permission INTERNET \
-            --debug
+wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+unzip -q commandlinetools-linux-9477386_latest.zip
+mkdir -p cmdline-tools/latest
+mv cmdline-tools/* cmdline-tools/latest/ || true
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: WG-Lite-debug
-          path: ~/.local/share/python-for-android/dists/*/build/outputs/apk/debug/*.apk
+yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+  "platform-tools" \
+  "platforms;android-${ANDROID_API}" \
+  "build-tools;26.0.3" \
+  "ndk;25.2.9519653"
+
+cd -
+
+############################
+# 5️⃣ BUILD APK
+############################
+python -m pythonforandroid.toolchain apk \
+  --name WG-Lite \
+  --package org.example.wglite \
+  --version 0.1 \
+  --private $APP_DIR \
+  --bootstrap service_only \
+  --requirements python3,pyjnius \
+  --arch $ARCH \
+  --android-api $ANDROID_API \
+  --minsdk $ANDROID_MINAPI \
+  --ndk-api $NDK_API \
+  --allow-minsdk-ndkapi-mismatch \
+  --permission INTERNET \
+  --debug
