@@ -1,4 +1,4 @@
-name: Build WG-Lite APK
+name: Build WG-Lite APK for Android 8.0
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install python-for-android
         run: |
           python -m pip install --upgrade pip
           pip install python-for-android==2023.5.21 Cython==0.29.37
@@ -35,8 +35,8 @@ jobs:
           mv cmdline-tools/* cmdline-tools/latest/ || true
           yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
-            "platforms;android-29" \
-            "build-tools;29.0.3" \
+            "platforms;android-26" \
+            "build-tools;26.0.3" \
             "ndk;25.2.9519653"
           cd -
 
@@ -50,8 +50,8 @@ jobs:
             --bootstrap service_only \
             --requirements python3,pyjnius \
             --arch armeabi-v7a \
-            --android-api 29 \
-            --minsdk 21 \
+            --android-api 26 \
+            --minsdk 26 \
             --ndk-api 25 \
             --allow-minsdk-ndkapi-mismatch \
             --permission INTERNET \
