@@ -1,0 +1,2 @@
+rootProject.name = 'WG-Lite'
+include ':app'
